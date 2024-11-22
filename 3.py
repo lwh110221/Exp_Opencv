@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # 读取图片文件
-img = cv2.imread('pic/BMW.jpg', 1)
+img = cv2.imread('pic/mm.jpg', 1)
 
 # 获取图片的高度、宽度和通道数
 height, width, channels = img.shape

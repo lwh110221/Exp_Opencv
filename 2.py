@@ -1,6 +1,6 @@
 import cv2
 
-img = cv2.imread('pic/BMW.jpg', 1)  # 读取图片文件，参数1表示以彩色模式读取图片
+img = cv2.imread('pic/mm.jpg', 1)  # 读取图片文件，参数1表示以彩色模式读取图片
 sp = img.shape  # 获取图片的形状信息
 print(sp)
 sz1 = sp[0]  # 图片的高度（行数）

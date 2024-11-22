@@ -6,23 +6,35 @@ import matplotlib.pyplot as plt
 image = cv2.imread('pic/yaosg.png')
 image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-# 设置邻域大小
-kernel_size = 3
-kernel = np.ones((kernel_size, kernel_size), np.float32) / (kernel_size ** 2)
+median_3x3 = cv2.medianBlur(image_rgb, 3)
 
-# 应用邻域平均法
-smoothed_image = cv2.filter2D(image_rgb, -1, kernel)
+# 5x5 中值滤波
+median_5x5 = cv2.medianBlur(image_rgb, 5)
 
-# 显示原图和处理后的图片
-plt.figure(figsize=(10, 5))
-plt.subplot(1, 2, 1)
-plt.title("Original Image")
+# 7x7 中值滤波
+median_7x7 = cv2.medianBlur(image_rgb, 7)
+
+# 显示处理后的图片
+plt.figure(figsize=(15, 5))
+
+plt.subplot(1, 4, 1)
+plt.title("原图")
 plt.imshow(image_rgb)
 plt.axis('off')
 
-plt.subplot(1, 2, 2)
-plt.title("Averaging Filter")
-plt.imshow(smoothed_image)
+plt.subplot(1, 4, 2)
+plt.title("中值 3x3")
+plt.imshow(median_3x3)
+plt.axis('off')
+
+plt.subplot(1, 4, 3)
+plt.title("中值 5x5")
+plt.imshow(median_5x5)
+plt.axis('off')
+
+plt.subplot(1, 4, 4)
+plt.title("中值 7x7")
+plt.imshow(median_7x7)
 plt.axis('off')
 
 plt.show()
