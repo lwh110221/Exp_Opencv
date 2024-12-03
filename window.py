@@ -4,8 +4,7 @@ from PIL import Image, ImageTk
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from tkinter import ttk
-import tkinter.font as tkFont
+
 
 
 # 全局变量，用于存储当前打开的图片
@@ -278,9 +277,9 @@ def image_translation():
             translated_img = np.zeros((height + abs(y_offset), width + abs(x_offset), 3), dtype='uint8')
             if y_offset >= 0 and x_offset >= 0:
                 translated_img[y_offset:, x_offset:] = img_array
-            elif y_offset < 0 and x_offset >= 0:
+            elif y_offset < 0 <= x_offset:
                 translated_img[:height + y_offset, x_offset:] = img_array[-y_offset:]
-            elif y_offset >= 0 and x_offset < 0:
+            elif y_offset >= 0 > x_offset:
                 translated_img[y_offset:, :width + x_offset] = img_array[:, -x_offset:]
             else:
                 translated_img[:height + y_offset, :width + x_offset] = img_array[-y_offset:, -x_offset:]
@@ -298,7 +297,7 @@ def image_mirroring():
     global current_image, image_label
     if current_image:
         try:
-            # 水平镜像示例
+            # 水平镜像
             processed_image = current_image.transpose(Image.FLIP_LEFT_RIGHT)
             update_image_display(processed_image)
             print("执行图像镜像算法成功")
@@ -427,8 +426,8 @@ class ParameterWindow:
 
 
 root = Tk()
-root.title("数字图像处理工具")
-root.geometry("800x600")  # 设置窗口大小
+root.title("lwh数字图像处理工具")
+root.geometry("1200x800")  # 设置窗口大小
 
 # 创建左侧控制面板
 control_panel = LabelFrame(root, text="控制面板")
