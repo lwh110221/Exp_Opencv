@@ -1,10 +1,11 @@
-from tkinter import LabelFrame, Scale, HORIZONTAL
-from tkinter import Tk, Button, Label, filedialog, Frame
+from tkinter import LabelFrame, Scale, HORIZONTAL, Tk, Button, Label, filedialog, Frame, ttk
 from PIL import Image, ImageTk
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+import tkinter as tk
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 
 
 # 全局变量，用于存储当前打开的图片
@@ -265,16 +266,23 @@ def draw_histogram():
 # 几何变换算法函数
 
 def image_translation():
-    """图像平移函数，此处需完善具体算法实现"""
+    """图像平移函数"""
     global current_image, image_label
     if current_image:
         try:
-            # 示例平移量，可按需调整
             x_offset = 50
             y_offset = 30
             width, height = current_image.size
-            img_array = np.array(current_image)
-            translated_img = np.zeros((height + abs(y_offset), width + abs(x_offset), 3), dtype='uint8')
+            
+            # 确保图像是RGB格式
+            if current_image.mode == 'RGBA':
+                img_array = np.array(current_image.convert('RGB'))
+            else:
+                img_array = np.array(current_image)
+                
+            channels = img_array.shape[2] if len(img_array.shape) == 3 else 1
+            translated_img = np.zeros((height + abs(y_offset), width + abs(x_offset), channels), dtype='uint8')
+            
             if y_offset >= 0 and x_offset >= 0:
                 translated_img[y_offset:, x_offset:] = img_array
             elif y_offset < 0 <= x_offset:
@@ -283,7 +291,9 @@ def image_translation():
                 translated_img[y_offset:, :width + x_offset] = img_array[:, -x_offset:]
             else:
                 translated_img[:height + y_offset, :width + x_offset] = img_array[-y_offset:, -x_offset:]
+                
             processed_image = Image.fromarray(translated_img)
+            current_image = processed_image
             update_image_display(processed_image)
             print("执行图像平移算法成功")
         except Exception as e:
@@ -313,16 +323,20 @@ def image_zooming():
         global current_image, image_label
         if current_image:
             try:
-                zoom_factor = params['放大倍数']
+                zoom_factor = float(params['放大倍数'])
                 width, height = current_image.size
                 new_width = int(width * zoom_factor)
                 new_height = int(height * zoom_factor)
-                # 使用高质量的重采样方法
-                processed_image = current_image.resize((new_width, new_height), 
-                                                     Image.Resampling.LANCZOS)
-                current_image = processed_image  # 更新当前图像
+                
+                # 使用LANCZOS重采样方法进行缩放
+                processed_image = current_image.resize(
+                    (new_width, new_height), 
+                    Image.Resampling.LANCZOS
+                )
+                
+                # 直接更新显示
                 update_image_display(processed_image)
-                print("执行图像放大算法成功")
+                print(f"执行图像放大算法成功,放大倍数:{zoom_factor}")
             except Exception as e:
                 print("执行图像放大算法出现错误:", e)
     
@@ -354,17 +368,25 @@ def select_image():
 
 # 更新界面上显示图像的函数
 def update_image_display(image):
-    global image_label
+    """更新界面上显示图像的函数"""
+    global current_image, image_label
     if image:
-        # 计算调整后的尺寸
-        display_size = get_display_size(image)
-        # 调整图片大小
-        display_image = image.copy()
-        display_image.thumbnail(display_size, Image.Resampling.LANCZOS)
-        
-        tk_image = ImageTk.PhotoImage(display_image)
-        image_label.configure(image=tk_image)
-        image_label.image = tk_image  # 保持引用
+        try:
+            # 计算调整后的尺寸
+            display_size = get_display_size(image)
+            # 调整图片大小用于显示
+            display_image = image.copy()
+            display_image.thumbnail(display_size, Image.Resampling.LANCZOS)
+            
+            # 更新当前图像
+            current_image = image  # 保存完整尺寸的处理后图像
+            
+            # 更新显示
+            tk_image = ImageTk.PhotoImage(display_image)
+            image_label.configure(image=tk_image)
+            image_label.image = tk_image  # 保持引用
+        except Exception as e:
+            print("更新图像显示时出错:", e)
 
 
 # 计算显示尺寸的函数
@@ -398,6 +420,30 @@ def reset_image():
         print("没有可重置的图片")
 
 
+def save_image():
+    """保存当前图片"""
+    global current_image
+    if current_image:
+        try:
+            # 使用文件对话框获取保存路径
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".png",
+                filetypes=[
+                    ("PNG files", "*.png"),
+                    ("JPEG files", "*.jpg"),
+                    ("All files", "*.*")
+                ]
+            )
+            if file_path:
+                # 直接保存当前处理后的图像
+                current_image.save(file_path)
+                print(f"图片已保存到: {file_path}")
+        except Exception as e:
+            print("保存图片时出错:", e)
+    else:
+        print("没有可保存的图片")
+
+
 class ParameterWindow:
     def __init__(self, title, callback, parameters):
         self.window = Tk()
@@ -408,14 +454,14 @@ class ParameterWindow:
         for param in parameters:
             name, min_val, max_val, default = param
             self.values[name] = default
-            Label(self.window, text=name).pack()
+            Label(self.window, text=name).pack(pady=5)
             scale = Scale(self.window, from_=min_val, to=max_val, 
                          orient=HORIZONTAL, resolution=0.1,
                          command=lambda v, n=name: self.update_value(n, v))
             scale.set(default)
-            scale.pack()
+            scale.pack(padx=10, pady=5)
         
-        Button(self.window, text="应用", command=self.apply).pack()
+        Button(self.window, text="应用", command=self.apply).pack(pady=10)
         
     def update_value(self, name, value):
         self.values[name] = float(value)
@@ -430,45 +476,49 @@ root.title("lwh数字图像处理工具")
 root.geometry("1200x800")  # 设置窗口大小
 
 # 创建左侧控制面板
-control_panel = LabelFrame(root, text="控制面板")
-control_panel.pack(side='left', fill='y', padx=5, pady=5)
+control_panel = LabelFrame(root, text="控制面板", padx=10, pady=10)
+control_panel.pack(side='left', fill='y', padx=10, pady=10)
 
 # 图片显示区域
-image_frame = LabelFrame(root, text="图片显示")
-image_frame.pack(side='right', fill='both', expand=True, padx=5, pady=5)
+image_frame = LabelFrame(root, text="图片显示", padx=10, pady=10)
+image_frame.pack(side='right', fill='both', expand=True, padx=10, pady=10)
 
 # 选择图片和重置按钮放在一起
 button_frame = Frame(control_panel)
 button_frame.pack(fill='x', padx=5, pady=5)
 select_image_button = Button(button_frame, text="选择图片", command=select_image)
-select_image_button.pack(side='left', padx=2)
+select_image_button.pack(side='left', padx=5, pady=5)
 reset_button = Button(button_frame, text="重置图片", command=reset_image)
-reset_button.pack(side='left', padx=2)
+reset_button.pack(side='left', padx=5, pady=5)
+save_button = Button(button_frame, text="保存图片", command=save_image)
+save_button.pack(side='left', padx=5, pady=5)
 
 # 灰度变换算法按钮
-gray_trans_buttons_frame = LabelFrame(control_panel, text="灰度变换算法")
-gray_trans_buttons_frame.pack()
-Button(gray_trans_buttons_frame, text="全域线性变换", command=global_linear_transformation).pack()
-Button(gray_trans_buttons_frame, text="彩色图像灰度化", command=color_to_gray).pack()
-Button(gray_trans_buttons_frame, text="反色变换", command=inverse_color).pack()
-Button(gray_trans_buttons_frame, text="阈值化处理", command=threshold_processing).pack()
-Button(gray_trans_buttons_frame, text="削波处理", command=clipping_processing).pack()
+gray_trans_buttons_frame = LabelFrame(control_panel, text="灰度变换算法", padx=10, pady=10)
+gray_trans_buttons_frame.pack(fill='x', padx=5, pady=5)
+Button(gray_trans_buttons_frame, text="全域线性变换", command=global_linear_transformation).pack(fill='x', pady=2)
+Button(gray_trans_buttons_frame, text="彩色图像灰度化", command=color_to_gray).pack(fill='x', pady=2)
+Button(gray_trans_buttons_frame, text="反色变换", command=inverse_color).pack(fill='x', pady=2)
+Button(gray_trans_buttons_frame, text="阈值化处理", command=threshold_processing).pack(fill='x', pady=2)
+Button(gray_trans_buttons_frame, text="削波处理", command=clipping_processing).pack(fill='x', pady=2)
 
 # 图像平滑算法按钮
-smooth_buttons_frame = LabelFrame(control_panel, text="图像平滑算法")
-smooth_buttons_frame.pack()
-Button(smooth_buttons_frame, text="邻域平均法", command=neighborhood_averaging).pack()
-Button(smooth_buttons_frame, text="中值滤波", command=median_filtering).pack()
+smooth_buttons_frame = LabelFrame(control_panel, text="图像平滑算法", padx=10, pady=10)
+smooth_buttons_frame.pack(fill='x', padx=5, pady=5)
+Button(smooth_buttons_frame, text="邻域平均法", command=neighborhood_averaging).pack(fill='x', pady=2)
+Button(smooth_buttons_frame, text="中值滤波", command=median_filtering).pack(fill='x', pady=2)
 
 # 直方图按钮
 histogram_button = Button(control_panel, text="绘制直方图", command=draw_histogram)
-histogram_button.pack()
+histogram_button.pack(fill='x', padx=5, pady=5)
 
 # 几何变换算法按钮
-geo_trans_buttons_frame = LabelFrame(control_panel, text="几何变换算法")
-geo_trans_buttons_frame.pack()
-Button(geo_trans_buttons_frame, text="图像平移", command=image_translation).pack()
-Button(geo_trans_buttons_frame, text="图像镜像", command=image_mirroring).pack()
-Button(geo_trans_buttons_frame, text="图像放大", command=image_zooming).pack()
+geo_trans_buttons_frame = LabelFrame(control_panel, text="几何变换算法", padx=10, pady=10)
+geo_trans_buttons_frame.pack(fill='x', padx=5, pady=5)
+Button(geo_trans_buttons_frame, text="图像平移", command=image_translation).pack(fill='x', pady=2)
+Button(geo_trans_buttons_frame, text="图像镜像", command=image_mirroring).pack(fill='x', pady=2)
+Button(geo_trans_buttons_frame, text="图像放大", command=image_zooming).pack(fill='x', pady=2)
 
 root.mainloop()
+
+
