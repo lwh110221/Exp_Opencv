@@ -1,4 +1,4 @@
-from tkinter import LabelFrame, Scale, HORIZONTAL, Tk, Button, Label, filedialog, Frame, ttk
+from tkinter import LabelFrame, Scale, HORIZONTAL, Tk, Button, Label, filedialog, Frame
 from PIL import Image, ImageTk
 import numpy as np
 import matplotlib.pyplot as plt
@@ -471,53 +471,98 @@ class ParameterWindow:
         self.window.destroy()
 
 
-root = Tk()
+# UI初始化部分
+root = ttk.Window(themename="darkly")  # 使用深色主题
 root.title("lwh数字图像处理工具")
-root.geometry("1200x800")  # 设置窗口大小
+root.geometry("1200x800")
+
+# 设置样式
+style = ttk.Style()
+style.configure('TLabelframe', borderwidth=2, relief="solid", borderradius=10)
+style.configure('TLabelframe.Label', font=('SF Pro Display', 12))
+style.configure('TButton', font=('SF Pro Display', 11), borderradius=6)
+style.configure('Accent.TButton', font=('SF Pro Display', 11, 'bold'))
 
 # 创建左侧控制面板
-control_panel = LabelFrame(root, text="控制面板", padx=10, pady=10)
-control_panel.pack(side='left', fill='y', padx=10, pady=10)
+control_panel = ttk.LabelFrame(root, text="控制面板", padding=15, style='TLabelframe')
+control_panel.pack(side='left', fill='y', padx=15, pady=15)
 
 # 图片显示区域
-image_frame = LabelFrame(root, text="图片显示", padx=10, pady=10)
-image_frame.pack(side='right', fill='both', expand=True, padx=10, pady=10)
+image_frame = ttk.LabelFrame(root, text="图片显示", padding=15, style='TLabelframe')
+image_frame.pack(side='right', fill='both', expand=True, padx=15, pady=15)
 
 # 选择图片和重置按钮放在一起
-button_frame = Frame(control_panel)
+button_frame = ttk.Frame(control_panel)
 button_frame.pack(fill='x', padx=5, pady=5)
-select_image_button = Button(button_frame, text="选择图片", command=select_image)
-select_image_button.pack(side='left', padx=5, pady=5)
-reset_button = Button(button_frame, text="重置图片", command=reset_image)
-reset_button.pack(side='left', padx=5, pady=5)
-save_button = Button(button_frame, text="保存图片", command=save_image)
-save_button.pack(side='left', padx=5, pady=5)
+select_image_button = ttk.Button(button_frame, text="选择图片", 
+                               command=select_image, style='Accent.TButton')
+select_image_button.pack(side='left', padx=3, pady=3)
+reset_button = ttk.Button(button_frame, text="重置图片", 
+                         command=reset_image, style='TButton')
+reset_button.pack(side='left', padx=3, pady=3)
+save_button = ttk.Button(button_frame, text="保存图片", 
+                        command=save_image, style='TButton')
+save_button.pack(side='left', padx=3, pady=3)
 
 # 灰度变换算法按钮
-gray_trans_buttons_frame = LabelFrame(control_panel, text="灰度变换算法", padx=10, pady=10)
+gray_trans_buttons_frame = ttk.LabelFrame(control_panel, text="灰度变换算法", 
+                                        padding=15, style='TLabelframe')
 gray_trans_buttons_frame.pack(fill='x', padx=5, pady=5)
-Button(gray_trans_buttons_frame, text="全域线性变换", command=global_linear_transformation).pack(fill='x', pady=2)
-Button(gray_trans_buttons_frame, text="彩色图像灰度化", command=color_to_gray).pack(fill='x', pady=2)
-Button(gray_trans_buttons_frame, text="反色变换", command=inverse_color).pack(fill='x', pady=2)
-Button(gray_trans_buttons_frame, text="阈值化处理", command=threshold_processing).pack(fill='x', pady=2)
-Button(gray_trans_buttons_frame, text="削波处理", command=clipping_processing).pack(fill='x', pady=2)
+
+for btn_text, btn_cmd in [
+    ("全域线性变换", global_linear_transformation),
+    ("彩色图像灰度化", color_to_gray),
+    ("反色变换", inverse_color),
+    ("阈值化处理", threshold_processing),
+    ("削波处理", clipping_processing)
+]:
+    ttk.Button(gray_trans_buttons_frame, text=btn_text, 
+               command=btn_cmd, style='TButton').pack(fill='x', pady=3)
 
 # 图像平滑算法按钮
-smooth_buttons_frame = LabelFrame(control_panel, text="图像平滑算法", padx=10, pady=10)
+smooth_buttons_frame = ttk.LabelFrame(control_panel, text="图像平滑算法", 
+                                    padding=15, style='TLabelframe')
 smooth_buttons_frame.pack(fill='x', padx=5, pady=5)
-Button(smooth_buttons_frame, text="邻域平均法", command=neighborhood_averaging).pack(fill='x', pady=2)
-Button(smooth_buttons_frame, text="中值滤波", command=median_filtering).pack(fill='x', pady=2)
+
+for btn_text, btn_cmd in [
+    ("邻域平均法", neighborhood_averaging),
+    ("中值滤波", median_filtering)
+]:
+    ttk.Button(smooth_buttons_frame, text=btn_text, 
+               command=btn_cmd, style='TButton').pack(fill='x', pady=3)
 
 # 直方图按钮
-histogram_button = Button(control_panel, text="绘制直方图", command=draw_histogram)
+histogram_button = ttk.Button(control_panel, text="绘制直方图", 
+                            command=draw_histogram, style='Accent.TButton')
 histogram_button.pack(fill='x', padx=5, pady=5)
 
 # 几何变换算法按钮
-geo_trans_buttons_frame = LabelFrame(control_panel, text="几何变换算法", padx=10, pady=10)
+geo_trans_buttons_frame = ttk.LabelFrame(control_panel, text="几何变换算法", 
+                                       padding=15, style='TLabelframe')
 geo_trans_buttons_frame.pack(fill='x', padx=5, pady=5)
-Button(geo_trans_buttons_frame, text="图像平移", command=image_translation).pack(fill='x', pady=2)
-Button(geo_trans_buttons_frame, text="图像镜像", command=image_mirroring).pack(fill='x', pady=2)
-Button(geo_trans_buttons_frame, text="图像放大", command=image_zooming).pack(fill='x', pady=2)
+
+for btn_text, btn_cmd in [
+    ("图像平移", image_translation),
+    ("图像镜像", image_mirroring),
+    ("图像放大", image_zooming)
+]:
+    ttk.Button(geo_trans_buttons_frame, text=btn_text, 
+               command=btn_cmd, style='TButton').pack(fill='x', pady=3)
+
+status_frame = ttk.Frame(root)
+status_frame.pack(side=BOTTOM, fill=X, padx=15, pady=(0, 15))
+
+
+status_bar = ttk.Label(status_frame, text="就绪", relief="solid", padding=5)
+status_bar.pack(side=LEFT, fill=X, expand=True)
+
+author_label = ttk.Label(status_frame, 
+                        text="by Lwh", 
+                        font=('SF Pro Display', 20, 'italic'),
+                        padding=5)
+author_label.pack(side=RIGHT)
+
+root.mainloop()
 
 root.mainloop()
 

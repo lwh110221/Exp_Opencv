@@ -1,0 +1,3 @@
+([('Lwh数字图像处理整合_Mac',
+   '/Users/ahao/Project/Exp_picture/dist/Lwh数字图像处理整合_Mac',
+   'EXECUTABLE')],)
