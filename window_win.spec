@@ -4,10 +4,7 @@ a = Analysis(
     ['window.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        ('venv/Lib/site-packages/ttkbootstrap', 'ttkbootstrap'),
-        ('venv/Lib/site-packages/matplotlib', 'matplotlib'),
-    ],
+
     hiddenimports=[
         'PIL._tkinter_finder',
         'ttkbootstrap',
